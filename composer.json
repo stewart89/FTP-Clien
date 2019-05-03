@@ -1,0 +1,20 @@
+{
+    "name": "stewart/ftp-client",
+    "type": "library",
+    "description": "PHP class fot FTP operations",
+    "keywords": ["git", "FTP", "PHP"],
+	"authors": [
+		{
+			"name": "Ambrus Norbert",
+			"email": "p_stewart89@yahoo.com"
+		}
+	],
+	"require": {
+		"php": ">=5.4.0"
+	},
+	"autoload": {
+		"classmap": ["src/"]
+	},
+    "require-dev": {
+    }
+}

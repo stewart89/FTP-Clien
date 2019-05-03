@@ -1,27 +1,27 @@
 <?php
 
 /*
-* FTP müveleteket végre hajtó osztály
+* CLass for FTP Operations
  */
 
 class FTP {
 
 	/**
-	 * A szerver elérése (címe)
+	 * Host name
 	 * @var string
 	 * @access private
 	 */
 	private $host;
 
 	/**
-	 * Felhasználó név
+	 * Username
 	 * @var string
 	 * @access private
 	 */
 	private $username;
 
 	/**
-	 * Jelszó
+	 * Password
 	 * @var string
 	 * @access private
 	 */
@@ -35,58 +35,57 @@ class FTP {
 	private $port;
 
 	/**
-	 * Probálkozási idő
+	 * Timeout
 	 * @var integer
 	 * @access private
 	 */
 	private $timeout;
 
 	/**
-	 * Az ftp csatlakozási objektumot
+	 * FTP connection string
 	 * @var object
 	 * @access private
 	 */
 	private $connection;
 
 	/**
-	 * Peldányosításkor kell megadni a címet, felhasználónevet, jelszót, meglehet adni a portot és probálkozási időt is.
-	 * @param string  $host     szerver elérése
-	 * @param string  $username felhasználónév
-	 * @param string  $password jelszó
+	 * Creates and FTP connection object
+	 * @param string  $host     host name
+	 * @param string  $username username
+	 * @param string  $password password
 	 * @param integer $port     port
-	 * @param integer $timeout  probálkozási idő
+	 * @param integer $timeout  timeout
 	 * @access public
 	 */
 	public function __construct($host, $username, $password, $port = 21, $timeout = 90){
 
 		if($host == '' || $username == '' || $password == ''){
 
-			throw new Exception('Üres szerver, felhasználónév, vagy jelszó');
-			return false;
+			throw new \Exception('Error: Empty host name, username or password');
 		}
 
 		$this->host = $host;
 		$this->username = $username;
 		$this->password = $password;
 		$this->port = $port;
-		$this->timeout = $timeout;
+        $this->timeout = $timeout;
+        
 
-		if($this->connection = ftp_connect($host, $port, $timeout)){
+        $this->connection = ftp_connect($host, $port, $timeout);
+		if($this->connection){
 
 			if(!ftp_login($this->connection, $username, $password)){
 
-				throw new Exception('Hiba a bejelentkezés során');
-				return false;
+				throw new \Exception('Error: Wrong username or password');
 			}
 		}else{
 
-			throw new Exception('Hiba a csatlakozás során');
-			return false;
+			throw new \Exception('Error: Can\'t connect to the server');
 		}
 	}
 
 	/**
-	 * Destructor, bontja a kapcsolatot az ftp szerverrel
+	 * Closes the connection
 	 */
 	public function __destruct(){
 
@@ -94,61 +93,43 @@ class FTP {
 	}
 
 	/**
-	 * A már beálitott paraméterek alapján újra csatlakozik a szerverhez, miután az előző kapcsolatot bontotta
+	 * Closes the connection and try a reconnect
 	 * @return boolean
 	 * @access public
 	 */
 	public function reConnect(){
 
 		$this->disconnect();
+		$this->connection = ftp_connect($host, $port, $timeout);
+		if($this->connection){
 
-		if($this->connection = ftp_connect($this->host, $this->port, $this->timeout)){
+			if(!ftp_login($this->connection, $username, $password)){
 
-			if(!ftp_login($this->connection, $this->username, $this->password)){
-
-				throw new Exception('Hiba a bejelentkezés során');
-				return false;
+				throw new \Exception('Error: Wrong username or password');
 			}
 		}else{
 
-			throw new Exception('Hiba a csatlakozás során');
-			return false;
+			throw new \Exception('Error: Can\'t connect to the server');
 		}
 		return true;
 	}
-
+	
 	/**
-	 * Beállitja a passziv módot
+	 * Sets passive mode
 	 * @return boolean
 	 * @access public
 	 */
 	public function setPassiveMode(){
-
-		/*if(!ftp_pasv($this->connection, true)){
-
-			throw new Exception('Hiba a passziv mód beállitása során');
-			return false;
-		}*/ 
-		return true;
-	}
-	
-	/**
-	 * Beállitja a passziv módot
-	 * @return boolean
-	 * @access public
-	 */
-	public function setPassiveMode2(){
 	
 		if(!ftp_pasv($this->connection, true)){
 	
 			throw new Exception('Hiba a passziv mód beállitása során');
-			return false;
 		}
 		return true;
 	}
 
 	/**
-	 * Törli a passziv módot
+	 * Deletes passive mode
 	 * @return boolean
 	 * @access public
 	 */
@@ -156,14 +137,13 @@ class FTP {
 
 		if(!ftp_pasv($this->connection, false)){
 
-			throw new Exception('Hiba a passziv törlése beállitása során');
-			return false;
+			throw new Exception('Error: ');
 		}
 		return true;
 	}
 
 	/**
-	 * Bontra a kapcsolatot az ftp szerverrel
+	 * Closes the connection 
 	 * @return boolean
 	 * @access public
 	 */
@@ -176,7 +156,7 @@ class FTP {
 	}
 
 	/**
-	 * A megadott utvonalon vissza adja fájlokat
+	 * Retrieves the files from the given path
 	 * @param  string $path elérési út
 	 * @return array       A fájlokat tartalmazó tömb
 	 * @access public
@@ -189,14 +169,13 @@ class FTP {
 
 		if(!$filelist = ftp_nlist($this->connection, $path)){
 
-			throw new Exception('Hiba a fájl lista lekérdezése során.');
-			return false;
+			throw new Exception('Error: Cannot read files from the given path');
 		}
 		return $filelist;
 	}
 
 	/**
-	 * Megnézi hogy a megadott fájl létezike
+	 * Check the given file is exitst
 	 * @param  string $path az eléréi útvonal
 	 * @return boolean
 	 * @access public
@@ -217,10 +196,10 @@ class FTP {
 	}
 
 	/**
-	 * Feltölt egy fájlt az ftp szerverre
-	 * @param  string $remote_file Az ftp fájl
-	 * @param  string $local_file  a helyi fájl
-	 * @param  constant $mode      a másolás módja
+	 * Upload the given file to the ftp
+	 * @param  string $remote_file FTP file path 
+	 * @param  string $local_file  Local file path
+	 * @param  constant $mode      Mode of copy
 	 * @return boolean
 	 * @access public
 	 */
@@ -230,16 +209,16 @@ class FTP {
 			if(file_exists($local_file)) {
 				return ftp_put($this->connection, $remote_file, $local_file, $mode);
 			}else{
-				throw new Exception("A helyi fájl nem létezik, fájlnév: ". $local_file);
+				throw new Exception("Error: local file does not exit, filename: ". $local_file);
 			}
 		}
 		return false;
 	}
 
 	/**
-	 * Rekurziv feltöltés
-	 * @param  string $remote_dir Az ftp elérés, hogy hová töltse a fájlokat
-	 * @param  string $local_dir  a helyi fájlok, ami mapp kell hogy legyen
+	 * Recursive file upload
+	 * @param  string $remote_dir FTP dir path
+	 * @param  string $local_dir  Local dir path (must be a dir)
 	 * @param  constant $mode     a feltöltés módja
 	 * @return boolean
 	 * @access public
@@ -251,8 +230,7 @@ class FTP {
 		}
 
 		if(!is_dir($local_dir)){
-			throw new Exception("A megadott fájl nem mappa", 1);
-			return false;
+			throw new Exception("THe given path is not a dir", 1);
 		}
 
 		$objects = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($local_dir), RecursiveIteratorIterator::SELF_FIRST);
@@ -265,12 +243,12 @@ class FTP {
             	if($folderpath == "/"){
             		$folderpath = "";
             	}
-            	$this->mkdir($remote_dir.$folderpath);
+            	$this->mkdir($remote_dir . $folderpath);
 
                 if(!$object->isDir()){
 
-                	$srcpath = $local_dir.$realtivepath;
-		       		$destpath = $remote_dir.$realtivepath;
+                	$srcpath = $local_dir . $realtivepath;
+		       		$destpath = $remote_dir . $realtivepath;
 		       		$this->upload($destpath, $srcpath);
                 }
             }
@@ -279,10 +257,10 @@ class FTP {
 	}
 
 	/**
-	 * Fájl letöltése ftpről
-	 * @param  string $remote_file A ftpn levő fájl
-	 * @param  string $local_file  Az elérési útvonal ahová letöltje
-	 * @param  constant $mode      A letöltés módja
+	 * Download the file from ftp
+	 * @param  string $remote_file FTP file path
+	 * @param  string $local_file  Local file path
+	 * @param  constant $mode      Download type
 	 * @return boolean
 	 * @access public
 	 */
@@ -297,8 +275,8 @@ class FTP {
 	}
 
 	/**
-	 * Mappát hoz létre az ftp szerveren a megadott utvonalon
-	 * @param  string $path a mappa elérési utvonala
+	 * Creates a directory on FTP
+	 * @param  string $path Dir path
 	 * @return boolean
 	 * @access public
 	 */
@@ -316,8 +294,8 @@ class FTP {
 	}
 
 	/**
-	 * Törli a megadott utvonalon található mappát
-	 * @param  string $dirpath a mappa elérését tartalmazó utvonal
+	 * Deletes the dir on FTP
+	 * @param  string $dirpath The dir path
 	 * @return boolean
 	 * @access public
 	 */
@@ -334,8 +312,8 @@ class FTP {
 	}
 
 	/**
-	 * Fájlt töröl az ftp szerverről
-	 * @param  string $remote_file A fájl elérési utvonala
+	 * Deletes the file on FTP
+	 * @param  string $remote_file The file path on FTP
 	 * @return boolean
 	 * @access public
 	 */
@@ -352,8 +330,8 @@ class FTP {
 	}
 
 	/**
-	 * Törli a megadott mappa tartalmát
-	 * @param  string $dirpath a mappa elérése
+	 * Deletes the given dir / dir content on FTP 
+	 * @param  string $dirpath Dir path on ftp
 	 * @return boolean
 	 * @access public
 	 */
@@ -380,9 +358,9 @@ class FTP {
 	}
 
 	/**
-	 * Megváltoztatja egy fájl hozzá férési jogát
-	 * @param  string $remote_file A fájl elérése
-	 * @param  integer $mode       Hozzáférési mód
+	 * Changes the file rights on FTP
+	 * @param  string $remote_file The file path on FTP
+	 * @param  integer $mode       
 	 * @return boolean
 	 * @access public
 	 */
@@ -400,9 +378,9 @@ class FTP {
 	}
 
 	/**
-	 * Átnevez egy fájl az ftp szerveren
-	 * @param  string $oldname a régi fájl elérése
-	 * @param  string $newname az új fájl elérése
+	 * Renames the file on FTP server
+	 * @param  string $oldname old file path
+	 * @param  string $newname new file path
 	 * @return boolean
 	 * @access public
 	 */
@@ -420,8 +398,8 @@ class FTP {
 	}
 
 	/**
-	 * Megváltoztatja az aktuális mappát
-	 * @param  string $dir a új mappa elérése
+	 * Changes the currect directory on ftp
+	 * @param  string $dir new dir path
 	 * @return boolean
 	 * @access public
 	 */
@@ -437,7 +415,7 @@ class FTP {
 	}
 
 	/**
-	 * Vissza adja az aktuális mappát
+	 * Return the current directory name
 	 * @return string
 	 * @access public
 	 */
@@ -447,20 +425,20 @@ class FTP {
 	}
 
 	/**
-	 * Leelenörzi hogy a megadott változó tipusa megfelelőe
-	 * @param  variable $variable a megadott változó
-	 * @param  string $type       a változó tipusa
+	 * Checks the variable type
+	 * @param  variable $variable the given variable
+	 * @param  string $type       the variable type
 	 * @return boolean
 	 * @access private
 	 */
 	private function variableCheck($variable, $type){
 
 		if(!isset($variable)){
-			throw new Exception('A változó nem létezik');
+			throw new Exception('Error: The given variable does not exits');
 		}
 
 		if(gettype($variable) != $type){
-			throw new Exception('A paraméter tipusa '.$type.' kellene legyen '.gettype($variable).' lett megadva');
+			throw new Exception('The give variable type should be '.$type.' instead of '.gettype($variable));
 		}
 
 		return true;

@@ -1,7 +1,7 @@
 <?php
 
 /*
-* CLass for FTP Operations
+* OOP FTP operations in PHP
  */
 
  namespace FTP;
@@ -72,7 +72,6 @@ class FTP {
 		$this->port = $port;
         $this->timeout = $timeout;
         
-
         $this->connection = ftp_connect($host, $port, $timeout);
 		if($this->connection){
 
@@ -125,7 +124,7 @@ class FTP {
 	
 		if(!ftp_pasv($this->connection, true)){
 	
-			throw new Exception('Hiba a passziv mód beállitása során');
+			throw new \Exception('Hiba a passziv mód beállitása során');
 		}
 		return true;
 	}
@@ -139,7 +138,7 @@ class FTP {
 
 		if(!ftp_pasv($this->connection, false)){
 
-			throw new Exception('Error: ');
+			throw new \Exception('Error: ');
 		}
 		return true;
 	}
@@ -171,7 +170,7 @@ class FTP {
 
 		if(!$filelist = ftp_nlist($this->connection, $path)){
 
-			throw new Exception('Error: Cannot read files from the given path');
+			throw new \Exception('Error: Cannot read files from the given path');
 		}
 		return $filelist;
 	}
@@ -211,7 +210,7 @@ class FTP {
 			if(file_exists($local_file)) {
 				return ftp_put($this->connection, $remote_file, $local_file, $mode);
 			}else{
-				throw new Exception("Error: local file does not exit, filename: ". $local_file);
+				throw new \Exception("Error: local file does not exit, filename: ". $local_file);
 			}
 		}
 		return false;
@@ -232,10 +231,14 @@ class FTP {
 		}
 
 		if(!is_dir($local_dir)){
-			throw new Exception("THe given path is not a dir", 1);
+			throw new \Exception("THe given path is not a dir", 1);
 		}
 
-		$objects = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($local_dir), RecursiveIteratorIterator::SELF_FIRST);
+		$objects = new \RecursiveIteratorIterator(
+												new \RecursiveDirectoryIterator($local_dir), 
+												\RecursiveIteratorIterator::SELF_FIRST
+											);
+
         foreach ($objects as $name => $object){
             $srcpath = $object->getPathname();
             $realtivepath = str_replace($local_dir, "", $srcpath);
@@ -355,7 +358,7 @@ class FTP {
     			}
 			}
 		}
-
+		
 		$this->rmdir($dirpath);
 	}
 

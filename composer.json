@@ -1,7 +1,8 @@
 {
     "name": "stewart/ftp-client",
     "type": "library",
-    "description": "PHP class fot FTP operations",
+	"description": "PHP class fot FTP operations",
+	"homepage": "https://github.com/stewart89/FTP-Client-PHP",
     "keywords": ["git", "FTP", "PHP"],
 	"authors": [
 		{
@@ -13,10 +14,10 @@
 		"php": ">=5.4.0"
 	},
 	"autoload": {
-		"psr-0": {
-			"FTP": "src/"
+		"psr-4": {
+			"FTP\\": "src/FTP"
 		}
 	},
     "require-dev": {
-    }
+	}
 }

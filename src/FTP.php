@@ -4,6 +4,8 @@
 * CLass for FTP Operations
  */
 
+ namespace FTP;
+
 class FTP {
 
 	/**
